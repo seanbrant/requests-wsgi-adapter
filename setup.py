@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='wsgiadapter',
+    name='requests-wsgi-adapter',
     version='0.1',
     description='WSGI Transport Adapter for Requests',
     long_description=open('README.rst').read(),
