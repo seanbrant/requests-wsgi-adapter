@@ -35,7 +35,7 @@ class Content(object):
         pass
 
 
-class WsgiAdapter(BaseAdapter):
+class WSGIAdapter(BaseAdapter):
     server_protocol = 'HTTP/1.1'
     wsgi_version = (1, 0)
 

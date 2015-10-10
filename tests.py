@@ -3,7 +3,7 @@ import unittest
 
 import requests
 
-from wsgiadapter import WsgiAdapter
+from wsgiadapter import WSGIAdapter
 
 
 class WSGITestHandler(object):
@@ -22,12 +22,12 @@ class WSGITestHandler(object):
         }).encode('utf-8'))]
 
 
-class WsgiAdapterTest(unittest.TestCase):
+class WSGIAdapterTest(unittest.TestCase):
 
     def setUp(self):
         self.session = requests.session()
-        self.session.mount('http://localhost', WsgiAdapter(app=WSGITestHandler()))
-        self.session.mount('https://localhost', WsgiAdapter(app=WSGITestHandler()))
+        self.session.mount('http://localhost', WSGIAdapter(app=WSGITestHandler()))
+        self.session.mount('https://localhost', WSGIAdapter(app=WSGITestHandler()))
 
     def test_basic_response(self):
         response = self.session.get('http://localhost/index', headers={'Content-Type': 'application/json'})
