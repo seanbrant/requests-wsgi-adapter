@@ -52,7 +52,7 @@ class WSGIAdapter(BaseAdapter):
         data = request.body.encode('utf-8') if request.body else b''
 
         environ = {
-            'CONTENT_TYPE': request.headers.get('Content-Type'),
+            'CONTENT_TYPE': request.headers.get('Content-Type', 'text/plain'),
             'CONTENT_LENGTH': len(data),
             'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
