@@ -5,6 +5,10 @@ from requests.models import Response
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers
 
+try:
+    from http.client import responses
+except ImportError:
+    from httplib import responses
 
 try:
     from urllib.parse import urlparse
@@ -78,6 +82,7 @@ class WSGIAdapter(BaseAdapter):
 
         def start_response(status, headers):
             response.status_code = int(status.split(' ')[0])
+            response.reason = responses.get(response.status_code, 'Unknown Status Code')
             response.headers = CaseInsensitiveDict(headers)
             response.encoding = get_encoding_from_headers(response.headers)
 
