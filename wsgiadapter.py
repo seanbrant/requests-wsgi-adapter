@@ -73,10 +73,10 @@ class WSGIAdapter(BaseAdapter):
             'wsgi.url_scheme': urlinfo.scheme,
         }
 
-        environ.update({
-            'HTTP_{}'.format(name).replace('-', '_').upper(): value
+        environ.update(dict(
+            ('HTTP_{0}'.format(name).replace('-', '_').upper(), value)
             for name, value in request.headers.items()
-        })
+        ))
 
         response = Response()
 
