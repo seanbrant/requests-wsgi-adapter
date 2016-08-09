@@ -68,7 +68,14 @@ class WSGIAdapter(BaseAdapter):
 
         urlinfo = urlparse(request.url)
 
-        data = request.body.encode('utf-8') if request.body else b''
+        if not request.body:
+            data = b''
+        # requests>=2.11.0 makes request body a bytes object which no longer needs
+        # encoding
+        elif isinstance(request.body, bytes):
+            data = request.body
+        else:
+            data = request.body.encode('utf-8')
 
         environ = {
             'CONTENT_TYPE': request.headers.get('Content-Type', 'text/plain'),
