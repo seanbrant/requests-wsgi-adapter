@@ -17,6 +17,14 @@ try:
 except ImportError:
     from urlparse import urlparse
 
+try:
+    timedelta_total_seconds = datetime.timedelta.total_seconds
+except AttributeError:
+    def timedelta_total_seconds(timedelta):
+        return (
+            timedelta.microseconds + 0.0 +
+            (timedelta.seconds + timedelta.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +114,7 @@ class WSGIAdapter(BaseAdapter):
                 method=request.method,
                 url=urlinfo.path,
                 host=urlinfo.hostname,
-                time=round(response.elapsed.total_seconds() * 1000, 2),
+                time=round(timedelta_total_seconds(response.elapsed) * 1000, 2),
             )
 
             log(summary)
