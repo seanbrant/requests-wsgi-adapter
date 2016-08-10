@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='requests-wsgi-adapter',
-    version='0.1.6',
+    version='0.1.7',
     description='WSGI Transport Adapter for Requests',
     long_description=open('README.rst').read(),
     author='Sean Brant',
