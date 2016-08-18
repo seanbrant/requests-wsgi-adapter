@@ -134,7 +134,7 @@ class WSGIAdapter(BaseAdapter):
             method=response.request.method,
             url=response.request.path_url,
             host=urlparse(response.url).hostname,
-            time=round(datetime.timedelta.total_seconds(response.elapsed) * 1000, 2),
+            time=round(timedelta_total_seconds(response.elapsed) * 1000, 2),
         )
 
         log(summary)
