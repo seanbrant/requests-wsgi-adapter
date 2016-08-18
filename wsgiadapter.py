@@ -56,11 +56,12 @@ class WSGIAdapter(BaseAdapter):
     server_protocol = 'HTTP/1.1'
     wsgi_version = (1, 0)
 
-    def __init__(self, app, multiprocess=False, multithread=False, run_once=False):
+    def __init__(self, app, multiprocess=False, multithread=False, run_once=False, log_function=None):
         self.app = app
         self.multiprocess = multiprocess
         self.multithread = multithread
         self.run_once = run_once
+        self._log = log_function or self._log
         self.errors = io.BytesIO()
 
     def send(self, request, *args, **kwargs):
@@ -108,23 +109,7 @@ class WSGIAdapter(BaseAdapter):
             response.headers = CaseInsensitiveDict(headers)
             response.encoding = get_encoding_from_headers(response.headers)
             response.elapsed = datetime.datetime.utcnow() - start
-
-            if response.status_code < 400:
-                log = logger.info
-            elif response.status_code < 500:
-                log = logger.warning
-            else:
-                log = logger.error
-
-            summary = '{status} {method} {url} ({host}) {time}ms'.format(
-                status=response.status_code,
-                method=request.method,
-                url=urlinfo.path,
-                host=urlinfo.hostname,
-                time=round(timedelta_total_seconds(response.elapsed) * 1000, 2),
-            )
-
-            log(summary)
+            self._log(response)
 
         response.request = request
         response.url = request.url
@@ -135,3 +120,21 @@ class WSGIAdapter(BaseAdapter):
 
     def close(self):
         pass
+
+    def _log(self, response):
+        if response.status_code < 400:
+            log = logger.info
+        elif response.status_code < 500:
+            log = logger.warning
+        else:
+            log = logger.error
+
+        summary = '{status} {method} {url} ({host}) {time}ms'.format(
+            status=response.status_code,
+            method=response.request.method,
+            url=response.request.path_url,
+            host=urlparse(response.url).hostname,
+            time=round(datetime.timedelta.total_seconds(response.elapsed) * 1000, 2),
+        )
+
+        log(summary)
