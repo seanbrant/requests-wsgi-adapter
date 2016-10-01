@@ -84,7 +84,7 @@ class WSGIAdapter(BaseAdapter):
             'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
-            'SERVER_PORT': urlinfo.port or (443 if urlinfo.scheme == 'https' else 80),
+            'SERVER_PORT': urlinfo.port or ('443' if urlinfo.scheme == 'https' else '80'),
             'SERVER_PROTOCOL': self.server_protocol,
             'wsgi.version': self.wsgi_version,
             'wsgi.url_scheme': urlinfo.scheme,
