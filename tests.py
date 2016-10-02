@@ -46,7 +46,7 @@ class WSGIAdapterTest(unittest.TestCase):
 
     def test_request_with_https(self):
         response = self.session.get('https://localhost/index')
-        self.assertEqual(response.json()['server_port'], 443)
+        self.assertEqual(response.json()['server_port'], '443')
 
     def test_request_with_json(self):
         response = self.session.post('http://localhost/index', json={})

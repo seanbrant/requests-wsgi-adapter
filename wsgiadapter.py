@@ -44,6 +44,11 @@ class Content(object):
             self._read += amt
         return self._bytes.read(amt)
 
+    def readline(self):
+        line = self._bytes.readline()
+        self._read += len(line)
+        return line
+
     def stream(self, amt=None, decode_content=None):
         while self._read < self._len:
             yield self.read(amt)
@@ -84,7 +89,8 @@ class WSGIAdapter(BaseAdapter):
             'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
-            'SERVER_PORT': urlinfo.port or (443 if urlinfo.scheme == 'https' else 80),
+            'QUERY_STRING': urlinfo.query,
+            'SERVER_PORT': urlinfo.port or ('443' if urlinfo.scheme == 'https' else '80'),
             'SERVER_PROTOCOL': self.server_protocol,
             'wsgi.version': self.wsgi_version,
             'wsgi.url_scheme': urlinfo.scheme,
