@@ -44,6 +44,11 @@ class Content(object):
             self._read += amt
         return self._bytes.read(amt)
 
+    def readline(self):
+        line = self._bytes.readline()
+        self._read += len(line)
+        return line
+
     def stream(self, amt=None, decode_content=None):
         while self._read < self._len:
             yield self.read(amt)
