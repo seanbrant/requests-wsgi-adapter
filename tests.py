@@ -9,7 +9,7 @@ from wsgiadapter import WSGIAdapter
 class WSGITestHandler(object):
 
     def __call__(self, environ, start_response):
-        start_response('200 OK', {'Content-Type': 'application/json'})
+        start_response('200 OK', {'Content-Type': 'application/json'}, exc_info=None)
         return [bytes(json.dumps({
             'result': '__works__',
             'body': environ['wsgi.input'].read().decode('utf-8'),
