@@ -109,7 +109,7 @@ class WSGIAdapter(BaseAdapter):
 
         response = Response()
 
-        def start_response(status, headers):
+        def start_response(status, headers, exc_info=None):
             response.status_code = int(status.split(' ')[0])
             response.reason = responses.get(response.status_code, 'Unknown Status Code')
             response.headers = CaseInsensitiveDict(headers)
