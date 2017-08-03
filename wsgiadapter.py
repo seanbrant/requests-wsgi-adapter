@@ -73,10 +73,12 @@ class MockMessage(object):
     def info(self):
         return self
 
-    def getheaders(self, name):
+    def getheaders(self, name, default=None):
         header = self._headers.get(name)
+        if default is None:
+            default = []
         if header is None:
-            return []
+            return default
         return [s.strip() for s in header.split(',')]
 
     get_all = getheaders
