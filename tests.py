@@ -9,7 +9,10 @@ from wsgiadapter import WSGIAdapter
 class WSGITestHandler(object):
 
     def __call__(self, environ, start_response):
-        start_response('200 OK', {'Content-Type': 'application/json'}, exc_info=None)
+        headers = {'Content-Type': 'application/json'}
+        if environ['PATH_INFO'].startswith('/cookies'):
+            headers['Set-Cookie'] = 'c1=v1; Path=/, c2=v2; Path=/'
+        start_response('200 OK', headers, exc_info=None)
         return [bytes(json.dumps({
             'result': '__works__',
             'body': environ['wsgi.input'].read().decode('utf-8'),
@@ -52,3 +55,8 @@ class WSGIAdapterTest(unittest.TestCase):
         response = self.session.post('http://localhost/index', json={})
         self.assertEqual(response.json()['body'], '{}')
         self.assertEqual(response.json()['content_length'], len('{}'))
+
+    def test_request_with_cookies(self):
+        response = self.session.get('http://localhost/cookies')
+        self.assertEqual(response.cookies['c1'], 'v1')
+        self.assertEqual(self.session.cookies['c2'], 'v2')
