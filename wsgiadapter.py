@@ -79,6 +79,8 @@ class MockMessage(object):
             return []
         return [s.strip() for s in header.split(',')]
 
+    get_all = getheaders
+
 
 class WSGIAdapter(BaseAdapter):
     server_protocol = 'HTTP/1.1'
