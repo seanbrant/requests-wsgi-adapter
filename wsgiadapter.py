@@ -59,7 +59,7 @@ class Content(object):
 
 
 class MockObject(object):
-    
+
     def __getattr__(self, name):
         setattr(self, name, MockObject())
         return getattr(self, name)
@@ -69,9 +69,6 @@ class MockMessage(object):
 
     def __init__(self, headers):
         self._headers = CaseInsensitiveDict(headers)
-
-    def info(self):
-        return self
 
     def getheaders(self, name, default=None):
         header = self._headers.get(name)
@@ -120,7 +117,6 @@ class WSGIAdapter(BaseAdapter):
             'SERVER_PORT': urlinfo.port or ('443' if urlinfo.scheme == 'https' else '80'),
             'SERVER_PROTOCOL': self.server_protocol,
             'wsgi.version': self.wsgi_version,
-            'wsgi.url_scheme': urlinfo.scheme,
             'wsgi.input': Content(data),
             'wsgi.errors': self.errors,
             'wsgi.multiprocess': self.multiprocess,
