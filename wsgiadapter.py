@@ -6,6 +6,7 @@ from requests.adapters import BaseAdapter
 from requests.models import Response
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers
+from requests.cookies import extract_cookies_to_jar
 
 try:
     from http.client import responses
@@ -57,6 +58,29 @@ class Content(object):
         pass
 
 
+class MockObject(object):
+
+    def __getattr__(self, name):
+        setattr(self, name, MockObject())
+        return getattr(self, name)
+
+
+class MockMessage(object):
+
+    def __init__(self, headers):
+        self._headers = CaseInsensitiveDict(headers)
+
+    def getheaders(self, name, default=None):
+        header = self._headers.get(name)
+        if default is None:
+            default = []
+        if header is None:
+            return default
+        return [s.strip() for s in header.split(',')]
+
+    get_all = getheaders
+
+
 class WSGIAdapter(BaseAdapter):
     server_protocol = 'HTTP/1.1'
     wsgi_version = (1, 0)
@@ -93,7 +117,6 @@ class WSGIAdapter(BaseAdapter):
             'SERVER_PORT': urlinfo.port or ('443' if urlinfo.scheme == 'https' else '80'),
             'SERVER_PROTOCOL': self.server_protocol,
             'wsgi.version': self.wsgi_version,
-            'wsgi.url_scheme': urlinfo.scheme,
             'wsgi.input': Content(data),
             'wsgi.errors': self.errors,
             'wsgi.multiprocess': self.multiprocess,
@@ -108,11 +131,14 @@ class WSGIAdapter(BaseAdapter):
         ))
 
         response = Response()
+        resp = MockObject()
 
         def start_response(status, headers, exc_info=None):
             response.status_code = int(status.split(' ')[0])
             response.reason = responses.get(response.status_code, 'Unknown Status Code')
             response.headers = CaseInsensitiveDict(headers)
+            resp._original_response.msg = MockMessage(headers)
+            extract_cookies_to_jar(response.cookies, request, resp)
             response.encoding = get_encoding_from_headers(response.headers)
             response.elapsed = datetime.datetime.utcnow() - start
             self._log(response)
@@ -121,6 +147,7 @@ class WSGIAdapter(BaseAdapter):
         response.url = request.url
 
         response.raw = Content(b''.join(self.app(environ, start_response)))
+        response.raw._original_response = resp._original_response
 
         return response
 
