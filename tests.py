@@ -3,6 +3,8 @@ import unittest
 
 import requests
 
+import httpbin
+
 from wsgiadapter import WSGIAdapter
 
 
@@ -60,3 +62,13 @@ class WSGIAdapterTest(unittest.TestCase):
         response = self.session.get('http://localhost/cookies')
         self.assertEqual(response.cookies['c1'], 'v1')
         self.assertEqual(self.session.cookies['c2'], 'v2')
+
+
+def test_multiple_cookies():
+    session = requests.session()
+    session.mount('http://localhost', WSGIAdapter(app=httpbin.app))
+    session.get(
+        "http://localhost/cookies/set?flimble=floop&flamble=flaap")
+    response = session.get("http://localhost/cookies")
+    assert response.json() == {
+        'cookies': {'flimble': 'floop', 'flamble': 'flaap'}}

@@ -20,6 +20,7 @@ setup(
         'tests': [
             'flake8',
             'pytest',
+            'httpbin',
         ],
     },
     classifiers=[
