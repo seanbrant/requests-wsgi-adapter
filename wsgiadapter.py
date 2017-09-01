@@ -81,6 +81,19 @@ class MockMessage(object):
     get_all = getheaders
 
 
+def make_headers(header_list):
+    if isinstance(header_list, dict):
+        d = header_list
+    else:
+        d = {}
+        for k, v in header_list:
+            if k in d:
+                d[k] = ", ".join((d[k], v))
+            else:
+                d[k] = v
+    return CaseInsensitiveDict(d)
+
+
 class WSGIAdapter(BaseAdapter):
     server_protocol = 'HTTP/1.1'
     wsgi_version = (1, 0)
@@ -136,8 +149,8 @@ class WSGIAdapter(BaseAdapter):
         def start_response(status, headers, exc_info=None):
             response.status_code = int(status.split(' ')[0])
             response.reason = responses.get(response.status_code, 'Unknown Status Code')
-            response.headers = CaseInsensitiveDict(headers)
-            resp._original_response.msg = MockMessage(headers)
+            response.headers = make_headers(headers)
+            resp._original_response.msg = MockMessage(response.headers)
             extract_cookies_to_jar(response.cookies, request, resp)
             response.encoding = get_encoding_from_headers(response.headers)
             response.elapsed = datetime.datetime.utcnow() - start
