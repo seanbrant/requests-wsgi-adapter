@@ -1,0 +1,4 @@
+requests>=1.0
+httpbin
+nosetests
+flake8
