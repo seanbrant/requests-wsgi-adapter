@@ -72,3 +72,18 @@ def test_multiple_cookies():
     response = session.get("http://localhost/cookies")
     assert response.json() == {
         'cookies': {'flimble': 'floop', 'flamble': 'flaap'}}
+
+
+def test_delete_cookies():
+    session = requests.session()
+    session.mount('http://localhost', WSGIAdapter(app=httpbin.app))
+    session.get(
+        "http://localhost/cookies/set?flimble=floop&flamble=flaap")
+    response = session.get("http://localhost/cookies")
+    assert response.json() == {
+        'cookies': {'flimble': 'floop', 'flamble': 'flaap'}}
+    response = session.get(
+        "http://localhost/cookies/delete?flimble")
+    result = response.json()
+    expected = {'cookies': {'flamble': 'flaap'}}
+    assert result == expected, result
