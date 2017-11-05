@@ -13,7 +13,7 @@ class WSGITestHandler(object):
     def __call__(self, environ, start_response):
         headers = {'Content-Type': 'application/json'}
         if environ['PATH_INFO'].startswith('/cookies'):
-            headers['Set-Cookie'] = 'c1=v1; Path=/, c2=v2; Path=/'
+            headers['Set-Cookie'] = 'c1=v1; Path=/'
         start_response('200 OK', headers, exc_info=None)
         return [bytes(json.dumps({
             'result': '__works__',
@@ -61,7 +61,7 @@ class WSGIAdapterTest(unittest.TestCase):
     def test_request_with_cookies(self):
         response = self.session.get('http://localhost/cookies')
         self.assertEqual(response.cookies['c1'], 'v1')
-        self.assertEqual(self.session.cookies['c2'], 'v2')
+        self.assertEqual(self.session.cookies['c1'], 'v1')
 
 
 def test_multiple_cookies():
