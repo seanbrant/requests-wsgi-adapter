@@ -66,7 +66,6 @@ class MockObject(object):
         return getattr(self, name)
 
 
-
 SENTINEL = object()
 
 
