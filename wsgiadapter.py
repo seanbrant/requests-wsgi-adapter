@@ -85,7 +85,7 @@ class MockMessage(object):
 
 
 def make_headers(headers):
-    if isinstance(headers, dict):
+    if hasattr(headers, 'items'):
         headers = headers.items()
     header_dict = HTTPHeaderDict()
     for key, value in headers:
