@@ -66,23 +66,6 @@ class MockObject(object):
         return getattr(self, name)
 
 
-SENTINEL = object()
-
-
-class MockMessage(object):
-
-    def __init__(self, headers):
-        self._headers = headers
-
-    def getheaders(self, name, default=SENTINEL):
-        if default == SENTINEL:
-            return self._headers.getheaders(name)
-        else:
-            return self._headers.getheaders(name, default)
-
-    get_all = getheaders
-
-
 def make_headers(headers):
     if hasattr(headers, 'items'):
         headers = headers.items()
@@ -149,7 +132,7 @@ class WSGIAdapter(BaseAdapter):
             response.status_code = int(status.split(' ')[0])
             response.reason = responses.get(response.status_code, 'Unknown Status Code')
             response.headers = headers
-            resp._original_response.msg = MockMessage(headers)
+            resp._original_response.msg = headers
             extract_cookies_to_jar(response.cookies, request, resp)
             response.encoding = get_encoding_from_headers(response.headers)
             response.elapsed = datetime.datetime.utcnow() - start
