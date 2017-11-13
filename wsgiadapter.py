@@ -2,9 +2,10 @@ import datetime
 import io
 import logging
 
+from urllib3._collections import HTTPHeaderDict
+
 from requests.adapters import BaseAdapter
 from requests.models import Response
-from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers
 from requests.cookies import extract_cookies_to_jar
 
@@ -65,20 +66,13 @@ class MockObject(object):
         return getattr(self, name)
 
 
-class MockMessage(object):
-
-    def __init__(self, headers):
-        self._headers = CaseInsensitiveDict(headers)
-
-    def getheaders(self, name, default=None):
-        header = self._headers.get(name)
-        if default is None:
-            default = []
-        if header is None:
-            return default
-        return [s.strip() for s in header.split(',')]
-
-    get_all = getheaders
+def make_headers(headers):
+    if hasattr(headers, 'items'):
+        headers = headers.items()
+    header_dict = HTTPHeaderDict()
+    for key, value in headers:
+        header_dict.add(key, value)
+    return header_dict
 
 
 class WSGIAdapter(BaseAdapter):
@@ -134,10 +128,11 @@ class WSGIAdapter(BaseAdapter):
         resp = MockObject()
 
         def start_response(status, headers, exc_info=None):
+            headers = make_headers(headers)
             response.status_code = int(status.split(' ')[0])
             response.reason = responses.get(response.status_code, 'Unknown Status Code')
-            response.headers = CaseInsensitiveDict(headers)
-            resp._original_response.msg = MockMessage(headers)
+            response.headers = headers
+            resp._original_response.msg = headers
             extract_cookies_to_jar(response.cookies, request, resp)
             response.encoding = get_encoding_from_headers(response.headers)
             response.elapsed = datetime.datetime.utcnow() - start
