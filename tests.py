@@ -21,7 +21,9 @@ class WSGITestHandler(object):
             'body': environ['wsgi.input'].read().decode('utf-8'),
             'content_type': environ['CONTENT_TYPE'],
             'content_length': environ['CONTENT_LENGTH'],
-            'path_info': environ['PATH_INFO'],
+            # The Common Gateway Interface (CGI) Version 1.1
+            # compatibly with https://tools.ietf.org/html/rfc3875#section-4.1.5
+            'path_info': environ['PATH_INFO'].encode('latin-1').decode('utf-8'),
             'request_method': environ['REQUEST_METHOD'],
             'server_name': environ['SERVER_NAME'],
             'server_port': environ['SERVER_PORT'],
@@ -58,6 +60,12 @@ class WSGIAdapterTest(unittest.TestCase):
         response = self.session.post('http://localhost/index', json={})
         self.assertEqual(response.json()['body'], '{}')
         self.assertEqual(response.json()['content_length'], len('{}'))
+
+    def test_request_i18n_path(self):
+        response = self.session.get('http://localhost/привет', json={})
+        self.assertEqual(response.json()['path_info'], '/привет')
+        response = self.session.get('http://localhost/Moselfränkisch', json={})
+        self.assertEqual(response.json()['path_info'], '/Moselfränkisch')
 
 
 class WSGIAdapterCookieTest(unittest.TestCase):

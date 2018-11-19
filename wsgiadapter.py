@@ -19,6 +19,8 @@ try:
 except ImportError:
     from urlparse import urlparse
 
+from urllib.parse import unquote
+
 try:
     timedelta_total_seconds = datetime.timedelta.total_seconds
 except AttributeError:
@@ -104,7 +106,10 @@ class WSGIAdapter(BaseAdapter):
         environ = {
             'CONTENT_TYPE': request.headers.get('Content-Type', 'text/plain'),
             'CONTENT_LENGTH': len(data),
-            'PATH_INFO': urlinfo.path,
+            # The Common Gateway Interface (CGI) Version 1.1
+            # compatibly with https://tools.ietf.org/html/rfc3875#section-4.1.5
+            # adapter must return PATH_INFO string in encoding latin-1
+            'PATH_INFO': unquote(urlinfo.path, encoding='latin-1'),
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
             'QUERY_STRING': urlinfo.query,
