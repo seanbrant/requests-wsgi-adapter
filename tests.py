@@ -64,9 +64,9 @@ class WSGIAdapterTest(unittest.TestCase):
 
     def test_request_i18n_path(self):
         response = self.session.get('http://localhost/привет', json={})
-        self.assertEqual(response.json()['path_info'], '/привет')
+        self.assertEqual(response.json()['path_info'], u'/привет')
         response = self.session.get('http://localhost/Moselfränkisch', json={})
-        self.assertEqual(response.json()['path_info'], '/Moselfränkisch')
+        self.assertEqual(response.json()['path_info'], u'/Moselfränkisch')
 
 
 class WSGIAdapterCookieTest(unittest.TestCase):
