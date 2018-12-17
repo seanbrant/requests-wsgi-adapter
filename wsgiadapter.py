@@ -19,7 +19,10 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-from urllib.parse import unquote
+try:
+    from urllib.parse import unquote
+except ImportError:
+    from urlparse import unquote
 
 try:
     timedelta_total_seconds = datetime.timedelta.total_seconds
