@@ -21,6 +21,7 @@ class WSGITestHandler(object):
             'body': environ['wsgi.input'].read().decode('utf-8'),
             'content_type': environ['CONTENT_TYPE'],
             'content_length': environ['CONTENT_LENGTH'],
+            'script_name': environ['SCRIPT_NAME'],
             'path_info': environ['PATH_INFO'],
             'request_method': environ['REQUEST_METHOD'],
             'server_name': environ['SERVER_NAME'],
@@ -41,6 +42,7 @@ class WSGIAdapterTest(unittest.TestCase):
         self.assertEqual(response.headers['Content-Type'], 'application/json')
         self.assertEqual(response.json()['result'], '__works__')
         self.assertEqual(response.json()['content_type'], 'application/json')
+        self.assertEqual(response.json()['script_name'], '')
         self.assertEqual(response.json()['path_info'], '/index')
         self.assertEqual(response.json()['request_method'], 'GET')
         self.assertEqual(response.json()['server_name'], 'localhost')
