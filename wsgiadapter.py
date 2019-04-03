@@ -33,10 +33,14 @@ logger = logging.getLogger(__name__)
 
 class Content(object):
 
-    def __init__(self, content):
-        self._len = len(content)
+    def __init__(self, content, length=None):
         self._read = 0
-        self._bytes = io.BytesIO(content)
+        if isinstance(content, bytes):
+            self._bytes = io.BytesIO(content)
+            self._len = len(content)
+        else:
+            self._bytes = content
+            self._len = length
 
     def __len__(self):
         return self._len
@@ -57,6 +61,9 @@ class Content(object):
 
     def release_conn(self):
         pass
+
+    def close(self):
+        self._bytes.close()
 
 
 class MockObject(object):
@@ -98,12 +105,19 @@ class WSGIAdapter(BaseAdapter):
         # encoding
         elif isinstance(request.body, bytes):
             data = request.body
-        else:
+        elif isinstance(request.body, str):
             data = request.body.encode('utf-8')
+        else:
+            data = request.body
+
+        if isinstance(data, bytes):
+            length = len(data)
+        else:
+            length = int(request.headers.get('Content-Length'))
 
         environ = {
             'CONTENT_TYPE': request.headers.get('Content-Type', 'text/plain'),
-            'CONTENT_LENGTH': len(data),
+            'CONTENT_LENGTH': length,
             'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
@@ -111,7 +125,7 @@ class WSGIAdapter(BaseAdapter):
             'SERVER_PORT': urlinfo.port or ('443' if urlinfo.scheme == 'https' else '80'),
             'SERVER_PROTOCOL': self.server_protocol,
             'wsgi.version': self.wsgi_version,
-            'wsgi.input': Content(data),
+            'wsgi.input': Content(data, length),
             'wsgi.errors': self.errors,
             'wsgi.multiprocess': self.multiprocess,
             'wsgi.multithread': self.multithread,
