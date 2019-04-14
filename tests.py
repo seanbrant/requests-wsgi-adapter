@@ -32,8 +32,11 @@ class WSGIAdapterTest(unittest.TestCase):
 
     def setUp(self):
         self.session = requests.session()
-        self.session.mount('http://localhost', WSGIAdapter(app=WSGITestHandler()))
-        self.session.mount('https://localhost', WSGIAdapter(app=WSGITestHandler()))
+        adapter = WSGIAdapter(app=WSGITestHandler())
+        self.session.mount('http://localhost', adapter)
+        self.session.mount('http://localhost:5000', adapter)
+        self.session.mount('https://localhost', adapter)
+        self.session.mount('https://localhost:5443', adapter)
 
     def test_basic_response(self):
         response = self.session.get('http://localhost/index', headers={'Content-Type': 'application/json'})
@@ -58,6 +61,16 @@ class WSGIAdapterTest(unittest.TestCase):
         response = self.session.post('http://localhost/index', json={})
         self.assertEqual(response.json()['body'], '{}')
         self.assertEqual(response.json()['content_length'], len('{}'))
+
+    def test_server_port(self):
+        response = self.session.get('http://localhost/index')
+        self.assertEqual(response.json()['server_port'], '80')
+        response = self.session.get('http://localhost:5000/index')
+        self.assertEqual(response.json()['server_port'], '5000')
+        response = self.session.get('https://localhost/index')
+        self.assertEqual(response.json()['server_port'], '443')
+        response = self.session.get('https://localhost:5443/index')
+        self.assertEqual(response.json()['server_port'], '5443')
 
 
 class WSGIAdapterCookieTest(unittest.TestCase):
