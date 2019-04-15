@@ -21,6 +21,7 @@ class WSGITestHandler(object):
             'body': environ['wsgi.input'].read().decode('utf-8'),
             'content_type': environ['CONTENT_TYPE'],
             'content_length': environ['CONTENT_LENGTH'],
+            'script_name': environ['SCRIPT_NAME'],
             'path_info': environ['PATH_INFO'],
             'request_method': environ['REQUEST_METHOD'],
             'server_name': environ['SERVER_NAME'],
@@ -32,8 +33,11 @@ class WSGIAdapterTest(unittest.TestCase):
 
     def setUp(self):
         self.session = requests.session()
-        self.session.mount('http://localhost', WSGIAdapter(app=WSGITestHandler()))
-        self.session.mount('https://localhost', WSGIAdapter(app=WSGITestHandler()))
+        adapter = WSGIAdapter(app=WSGITestHandler())
+        self.session.mount('http://localhost', adapter)
+        self.session.mount('http://localhost:5000', adapter)
+        self.session.mount('https://localhost', adapter)
+        self.session.mount('https://localhost:5443', adapter)
 
     def test_basic_response(self):
         response = self.session.get('http://localhost/index', headers={'Content-Type': 'application/json'})
@@ -41,6 +45,7 @@ class WSGIAdapterTest(unittest.TestCase):
         self.assertEqual(response.headers['Content-Type'], 'application/json')
         self.assertEqual(response.json()['result'], '__works__')
         self.assertEqual(response.json()['content_type'], 'application/json')
+        self.assertEqual(response.json()['script_name'], '')
         self.assertEqual(response.json()['path_info'], '/index')
         self.assertEqual(response.json()['request_method'], 'GET')
         self.assertEqual(response.json()['server_name'], 'localhost')
@@ -58,6 +63,16 @@ class WSGIAdapterTest(unittest.TestCase):
         response = self.session.post('http://localhost/index', json={})
         self.assertEqual(response.json()['body'], '{}')
         self.assertEqual(response.json()['content_length'], len('{}'))
+
+    def test_server_port(self):
+        response = self.session.get('http://localhost/index')
+        self.assertEqual(response.json()['server_port'], '80')
+        response = self.session.get('http://localhost:5000/index')
+        self.assertEqual(response.json()['server_port'], '5000')
+        response = self.session.get('https://localhost/index')
+        self.assertEqual(response.json()['server_port'], '443')
+        response = self.session.get('https://localhost:5443/index')
+        self.assertEqual(response.json()['server_port'], '5443')
 
     def test_plain_text(self):
         response = self.session.post('http://localhost/index', data='Once upon a time...')

@@ -109,11 +109,12 @@ class WSGIAdapter(BaseAdapter):
         environ = {
             'CONTENT_TYPE': request.headers.get('Content-Type', content_type),
             'CONTENT_LENGTH': len(data),
+            'SCRIPT_NAME': '',
             'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
             'QUERY_STRING': urlinfo.query,
-            'SERVER_PORT': urlinfo.port or ('443' if urlinfo.scheme == 'https' else '80'),
+            'SERVER_PORT': str(urlinfo.port or (443 if urlinfo.scheme == 'https' else 80)),
             'SERVER_PROTOCOL': self.server_protocol,
             'wsgi.version': self.wsgi_version,
             'wsgi.input': Content(data),
