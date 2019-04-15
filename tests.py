@@ -77,17 +77,14 @@ class WSGIAdapterTest(unittest.TestCase):
     def test_plain_text(self):
         response = self.session.post('http://localhost/index', data='Once upon a time...')
         self.assertEqual(response.json()['body'], 'Once upon a time...')
-        self.assertEqual(response.json()['content_type'], 'text/plain')
 
     def test_blob(self):
         response = self.session.post('http://localhost/index', data=b'bliblob')
         self.assertEqual(response.json()['body'], 'bliblob')
-        self.assertEqual(response.json()['content_type'], 'application/octet-stream')
 
     def test_empty(self):
         response = self.session.post('http://localhost/index')
         self.assertEqual(response.json()['body'], '')
-        self.assertEqual(response.json()['content_type'], None)
 
 
 class WSGIAdapterCookieTest(unittest.TestCase):

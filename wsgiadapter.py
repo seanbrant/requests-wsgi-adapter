@@ -92,22 +92,17 @@ class WSGIAdapter(BaseAdapter):
 
         urlinfo = urlparse(request.url)
 
-        content_type = None
         if not request.body:
             data = b''
         # requests>=2.11.0 makes request body a bytes object which no longer needs
         # encoding
         elif isinstance(request.body, str):
             data = request.body.encode('utf-8')
-            # TODO: remove?
-            content_type = 'text/plain'
         else:
             data = request.body
-            # TODO: remove?
-            content_type = 'application/octet-stream'
 
         environ = {
-            'CONTENT_TYPE': request.headers.get('Content-Type', content_type),
+            'CONTENT_TYPE': request.headers.get('Content-Type', ''),
             'CONTENT_LENGTH': len(data),
             'SCRIPT_NAME': '',
             'PATH_INFO': urlinfo.path,
