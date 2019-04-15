@@ -25,6 +25,8 @@ class WSGITestHandler(object):
             # The Common Gateway Interface (CGI) Version 1.1
             # compatibly with https://tools.ietf.org/html/rfc3875#section-4.1.5
             'path_info': environ['PATH_INFO'].encode('latin-1').decode('utf-8'),
+            'script_name': environ['SCRIPT_NAME'],
+            'path_info': environ['PATH_INFO'],
             'request_method': environ['REQUEST_METHOD'],
             'server_name': environ['SERVER_NAME'],
             'server_port': environ['SERVER_PORT'],
@@ -35,8 +37,11 @@ class WSGIAdapterTest(unittest.TestCase):
 
     def setUp(self):
         self.session = requests.session()
-        self.session.mount('http://localhost', WSGIAdapter(app=WSGITestHandler()))
-        self.session.mount('https://localhost', WSGIAdapter(app=WSGITestHandler()))
+        adapter = WSGIAdapter(app=WSGITestHandler())
+        self.session.mount('http://localhost', adapter)
+        self.session.mount('http://localhost:5000', adapter)
+        self.session.mount('https://localhost', adapter)
+        self.session.mount('https://localhost:5443', adapter)
 
     def test_basic_response(self):
         response = self.session.get('http://localhost/index', headers={'Content-Type': 'application/json'})
@@ -44,6 +49,7 @@ class WSGIAdapterTest(unittest.TestCase):
         self.assertEqual(response.headers['Content-Type'], 'application/json')
         self.assertEqual(response.json()['result'], '__works__')
         self.assertEqual(response.json()['content_type'], 'application/json')
+        self.assertEqual(response.json()['script_name'], '')
         self.assertEqual(response.json()['path_info'], '/index')
         self.assertEqual(response.json()['request_method'], 'GET')
         self.assertEqual(response.json()['server_name'], 'localhost')
@@ -67,6 +73,16 @@ class WSGIAdapterTest(unittest.TestCase):
         self.assertEqual(response.json()['path_info'], u'/привет')
         response = self.session.get('http://localhost/Moselfränkisch', json={})
         self.assertEqual(response.json()['path_info'], u'/Moselfränkisch')
+
+    def test_server_port(self):
+        response = self.session.get('http://localhost/index')
+        self.assertEqual(response.json()['server_port'], '80')
+        response = self.session.get('http://localhost:5000/index')
+        self.assertEqual(response.json()['server_port'], '5000')
+        response = self.session.get('https://localhost/index')
+        self.assertEqual(response.json()['server_port'], '443')
+        response = self.session.get('https://localhost:5443/index')
+        self.assertEqual(response.json()['server_port'], '5443')
 
 
 class WSGIAdapterCookieTest(unittest.TestCase):

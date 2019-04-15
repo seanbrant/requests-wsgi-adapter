@@ -112,14 +112,13 @@ class WSGIAdapter(BaseAdapter):
         environ = {
             'CONTENT_TYPE': request.headers.get('Content-Type', 'text/plain'),
             'CONTENT_LENGTH': len(data),
-            # The Common Gateway Interface (CGI) Version 1.1
-            # compatibly with https://tools.ietf.org/html/rfc3875#section-4.1.5
-            # adapter must return PATH_INFO string in encoding latin-1
             'PATH_INFO': unquote(urlinfo.path, encoding='latin-1'),
+            'SCRIPT_NAME': '',
+            'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
             'QUERY_STRING': urlinfo.query,
-            'SERVER_PORT': urlinfo.port or ('443' if urlinfo.scheme == 'https' else '80'),
+            'SERVER_PORT': str(urlinfo.port or (443 if urlinfo.scheme == 'https' else 80)),
             'SERVER_PROTOCOL': self.server_protocol,
             'wsgi.version': self.wsgi_version,
             'wsgi.input': Content(data),
