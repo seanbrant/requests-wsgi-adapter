@@ -78,7 +78,8 @@ class WSGIAdapterTest(unittest.TestCase):
     def test_stream_download(self):
         with self.session.get('http://localhost/index', stream=True) as response:
             self.assertEqual(response.status_code, 200)
-            payload = json.load(response.raw)
+            # payload = json.load(response.raw)
+            payload = json.loads(response.raw.read().decode('utf-8'))
             self.assertEqual(payload['result'], '__works__')
 
     def test_stream_upload(self):
