@@ -22,11 +22,8 @@ class WSGITestHandler(object):
             'body': environ['wsgi.input'].read().decode('utf-8'),
             'content_type': environ['CONTENT_TYPE'],
             'content_length': environ['CONTENT_LENGTH'],
-            # The Common Gateway Interface (CGI) Version 1.1
-            # compatibly with https://tools.ietf.org/html/rfc3875#section-4.1.5
             'path_info': environ['PATH_INFO'].encode('latin-1').decode('utf-8'),
             'script_name': environ['SCRIPT_NAME'],
-            'path_info': environ['PATH_INFO'],
             'request_method': environ['REQUEST_METHOD'],
             'server_name': environ['SERVER_NAME'],
             'server_port': environ['SERVER_PORT'],

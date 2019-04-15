@@ -114,7 +114,6 @@ class WSGIAdapter(BaseAdapter):
             'CONTENT_LENGTH': len(data),
             'PATH_INFO': unquote(urlinfo.path, encoding='latin-1'),
             'SCRIPT_NAME': '',
-            'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
             'QUERY_STRING': urlinfo.query,
