@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import io
 import json
 import unittest
 
@@ -92,6 +93,20 @@ class WSGIAdapterTest(unittest.TestCase):
     def test_empty(self):
         response = self.session.post('http://localhost/index')
         self.assertEqual(response.json()['body'], '')
+
+    def test_stream_download(self):
+        with self.session.get('http://localhost/index', stream=True) as response:
+            self.assertEqual(response.status_code, 200)
+            # payload = json.load(response.raw)
+            payload = json.loads(response.raw.read().decode('utf-8'))
+            self.assertEqual(payload['result'], '__works__')
+
+    def test_stream_upload(self):
+        with io.BytesIO(b'hugeblob') as f:
+            response = self.session.post('http://localhost/index', data=f)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()['body'], 'hugeblob')
+            self.assertEqual(response.json()['content_length'], len(b'hugeblob'))
 
 
 class WSGIAdapterCookieTest(unittest.TestCase):
