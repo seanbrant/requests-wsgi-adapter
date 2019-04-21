@@ -20,6 +20,14 @@ except ImportError:
     from urlparse import urlparse
 
 try:
+    from urllib.parse import unquote
+except ImportError:
+    from urllib2 import unquote as unquote2
+
+    def unquote(s, encoding):
+        return unquote2(s.decode(encoding))
+
+try:
     timedelta_total_seconds = datetime.timedelta.total_seconds
 except AttributeError:
     def timedelta_total_seconds(timedelta):
@@ -104,8 +112,8 @@ class WSGIAdapter(BaseAdapter):
         environ = {
             'CONTENT_TYPE': request.headers.get('Content-Type', ''),
             'CONTENT_LENGTH': len(data),
+            'PATH_INFO': unquote(urlinfo.path, encoding='latin-1'),
             'SCRIPT_NAME': '',
-            'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
             'QUERY_STRING': urlinfo.query,
