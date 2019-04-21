@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import io
 import json
 import unittest
@@ -22,8 +23,8 @@ class WSGITestHandler(object):
             'body': environ['wsgi.input'].read().decode('utf-8'),
             'content_type': environ['CONTENT_TYPE'],
             'content_length': environ['CONTENT_LENGTH'],
+            'path_info': environ['PATH_INFO'].encode('latin-1').decode('utf-8'),
             'script_name': environ['SCRIPT_NAME'],
-            'path_info': environ['PATH_INFO'],
             'request_method': environ['REQUEST_METHOD'],
             'server_name': environ['SERVER_NAME'],
             'server_port': environ['SERVER_PORT'],
@@ -65,6 +66,12 @@ class WSGIAdapterTest(unittest.TestCase):
         self.assertEqual(response.json()['body'], '{}')
         self.assertEqual(response.json()['content_length'], len('{}'))
 
+    def test_request_i18n_path(self):
+        response = self.session.get('http://localhost/привет', json={})
+        self.assertEqual(response.json()['path_info'], u'/привет')
+        response = self.session.get('http://localhost/Moselfränkisch', json={})
+        self.assertEqual(response.json()['path_info'], u'/Moselfränkisch')
+
     def test_server_port(self):
         response = self.session.get('http://localhost/index')
         self.assertEqual(response.json()['server_port'], '80')
@@ -74,6 +81,18 @@ class WSGIAdapterTest(unittest.TestCase):
         self.assertEqual(response.json()['server_port'], '443')
         response = self.session.get('https://localhost:5443/index')
         self.assertEqual(response.json()['server_port'], '5443')
+
+    def test_plain_text(self):
+        response = self.session.post('http://localhost/index', data='Once upon a time...')
+        self.assertEqual(response.json()['body'], 'Once upon a time...')
+
+    def test_blob(self):
+        response = self.session.post('http://localhost/index', data=b'bliblob')
+        self.assertEqual(response.json()['body'], 'bliblob')
+
+    def test_empty(self):
+        response = self.session.post('http://localhost/index')
+        self.assertEqual(response.json()['body'], '')
 
     def test_stream_download(self):
         with self.session.get('http://localhost/index', stream=True) as response:

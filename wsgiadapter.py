@@ -20,6 +20,14 @@ except ImportError:
     from urlparse import urlparse
 
 try:
+    from urllib.parse import unquote
+except ImportError:
+    from urllib2 import unquote as unquote2
+
+    def unquote(s, encoding):
+        return unquote2(s.decode(encoding))
+
+try:
     timedelta_total_seconds = datetime.timedelta.total_seconds
 except AttributeError:
     def timedelta_total_seconds(timedelta):
@@ -101,10 +109,6 @@ class WSGIAdapter(BaseAdapter):
 
         if not request.body:
             data = b''
-        # requests>=2.11.0 makes request body a bytes object which no longer needs
-        # encoding
-        elif isinstance(request.body, bytes):
-            data = request.body
         elif isinstance(request.body, str):
             data = request.body.encode('utf-8')
         else:
@@ -116,10 +120,10 @@ class WSGIAdapter(BaseAdapter):
             length = int(request.headers.get('Content-Length'))
 
         environ = {
-            'CONTENT_TYPE': request.headers.get('Content-Type', 'text/plain'),
+            'CONTENT_TYPE': request.headers.get('Content-Type', ''),
             'CONTENT_LENGTH': length,
+            'PATH_INFO': unquote(urlinfo.path, encoding='latin-1'),
             'SCRIPT_NAME': '',
-            'PATH_INFO': urlinfo.path,
             'REQUEST_METHOD': request.method,
             'SERVER_NAME': urlinfo.hostname,
             'QUERY_STRING': urlinfo.query,
