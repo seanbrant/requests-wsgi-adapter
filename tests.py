@@ -74,6 +74,18 @@ class WSGIAdapterTest(unittest.TestCase):
         response = self.session.get('https://localhost:5443/index')
         self.assertEqual(response.json()['server_port'], '5443')
 
+    def test_plain_text(self):
+        response = self.session.post('http://localhost/index', data='Once upon a time...')
+        self.assertEqual(response.json()['body'], 'Once upon a time...')
+
+    def test_blob(self):
+        response = self.session.post('http://localhost/index', data=b'bliblob')
+        self.assertEqual(response.json()['body'], 'bliblob')
+
+    def test_empty(self):
+        response = self.session.post('http://localhost/index')
+        self.assertEqual(response.json()['body'], '')
+
 
 class WSGIAdapterCookieTest(unittest.TestCase):
     def setUp(self):
