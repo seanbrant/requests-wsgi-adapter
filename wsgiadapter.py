@@ -27,20 +27,23 @@ except ImportError:
     def unquote(s, encoding):
         return unquote2(s.decode(encoding))
 
+
 try:
     timedelta_total_seconds = datetime.timedelta.total_seconds
 except AttributeError:
+
     def timedelta_total_seconds(timedelta):
         return (
-            timedelta.microseconds + 0.0 +
-            (timedelta.seconds + timedelta.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+            timedelta.microseconds
+            + 0.0
+            + (timedelta.seconds + timedelta.days * 24 * 3600) * 10 ** 6
+        ) / 10 ** 6
 
 
 logger = logging.getLogger(__name__)
 
 
 class Content(object):
-
     def __init__(self, content, length=None):
         self._read = 0
         if isinstance(content, bytes):
@@ -75,14 +78,13 @@ class Content(object):
 
 
 class MockObject(object):
-
     def __getattr__(self, name):
         setattr(self, name, MockObject())
         return getattr(self, name)
 
 
 def make_headers(headers):
-    if hasattr(headers, 'items'):
+    if hasattr(headers, "items"):
         headers = headers.items()
     header_dict = HTTPHeaderDict()
     for key, value in headers:
@@ -91,10 +93,17 @@ def make_headers(headers):
 
 
 class WSGIAdapter(BaseAdapter):
-    server_protocol = 'HTTP/1.1'
+    server_protocol = "HTTP/1.1"
     wsgi_version = (1, 0)
 
-    def __init__(self, app, multiprocess=False, multithread=False, run_once=False, log_function=None):
+    def __init__(
+        self,
+        app,
+        multiprocess=False,
+        multithread=False,
+        run_once=False,
+        log_function=None,
+    ):
         self.app = app
         self.multiprocess = multiprocess
         self.multithread = multithread
@@ -108,48 +117,52 @@ class WSGIAdapter(BaseAdapter):
         urlinfo = urlparse(request.url)
 
         if not request.body:
-            data = b''
+            data = b""
         elif isinstance(request.body, str):
-            data = request.body.encode('utf-8')
+            data = request.body.encode("utf-8")
         else:
             data = request.body
 
         if isinstance(data, bytes):
             length = len(data)
         else:
-            length = int(request.headers.get('Content-Length'))
+            length = int(request.headers.get("Content-Length"))
 
         environ = {
-            'CONTENT_TYPE': request.headers.get('Content-Type', ''),
-            'CONTENT_LENGTH': length,
-            'PATH_INFO': unquote(urlinfo.path, encoding='latin-1'),
-            'SCRIPT_NAME': '',
-            'REQUEST_METHOD': request.method,
-            'SERVER_NAME': urlinfo.hostname,
-            'QUERY_STRING': urlinfo.query,
-            'SERVER_PORT': str(urlinfo.port or (443 if urlinfo.scheme == 'https' else 80)),
-            'SERVER_PROTOCOL': self.server_protocol,
-            'wsgi.version': self.wsgi_version,
-            'wsgi.input': Content(data, length),
-            'wsgi.errors': self.errors,
-            'wsgi.multiprocess': self.multiprocess,
-            'wsgi.multithread': self.multithread,
-            'wsgi.run_once': self.run_once,
-            'wsgi.url_scheme': urlinfo.scheme,
+            "CONTENT_TYPE": request.headers.get("Content-Type", ""),
+            "CONTENT_LENGTH": length,
+            "PATH_INFO": unquote(urlinfo.path, encoding="latin-1"),
+            "SCRIPT_NAME": "",
+            "REQUEST_METHOD": request.method,
+            "SERVER_NAME": urlinfo.hostname,
+            "QUERY_STRING": urlinfo.query,
+            "SERVER_PORT": str(
+                urlinfo.port or (443 if urlinfo.scheme == "https" else 80)
+            ),
+            "SERVER_PROTOCOL": self.server_protocol,
+            "wsgi.version": self.wsgi_version,
+            "wsgi.input": Content(data, length),
+            "wsgi.errors": self.errors,
+            "wsgi.multiprocess": self.multiprocess,
+            "wsgi.multithread": self.multithread,
+            "wsgi.run_once": self.run_once,
+            "wsgi.url_scheme": urlinfo.scheme,
         }
 
-        environ.update(dict(
-            ('HTTP_{0}'.format(name).replace('-', '_').upper(), value)
-            for name, value in request.headers.items()
-        ))
+        environ.update(
+            dict(
+                ("HTTP_{0}".format(name).replace("-", "_").upper(), value)
+                for name, value in request.headers.items()
+            )
+        )
 
         response = Response()
         resp = MockObject()
 
         def start_response(status, headers, exc_info=None):
             headers = make_headers(headers)
-            response.status_code = int(status.split(' ')[0])
-            response.reason = responses.get(response.status_code, 'Unknown Status Code')
+            response.status_code = int(status.split(" ")[0])
+            response.reason = responses.get(response.status_code, "Unknown Status Code")
             response.headers = headers
             resp._original_response.msg = headers
             extract_cookies_to_jar(response.cookies, request, resp)
@@ -160,7 +173,7 @@ class WSGIAdapter(BaseAdapter):
         response.request = request
         response.url = request.url
 
-        response.raw = Content(b''.join(self.app(environ, start_response)))
+        response.raw = Content(b"".join(self.app(environ, start_response)))
         response.raw._original_response = resp._original_response
 
         return response
@@ -176,7 +189,7 @@ class WSGIAdapter(BaseAdapter):
         else:
             log = logger.error
 
-        summary = '{status} {method} {url} ({host}) {time}ms'.format(
+        summary = "{status} {method} {url} ({host}) {time}ms".format(
             status=response.status_code,
             method=response.request.method,
             url=response.request.path_url,

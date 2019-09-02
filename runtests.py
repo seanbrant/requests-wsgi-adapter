@@ -8,11 +8,11 @@ def runtests(args=None):
     if not args:
         args = []
 
-    if not any(a for a in args[1:] if not a.startswith('-')):
-        args.append('tests.py')
+    if not any(a for a in args[1:] if not a.startswith("-")):
+        args.append("tests.py")
 
     sys.exit(pytest.main(args))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     runtests(sys.argv)
