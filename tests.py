@@ -124,42 +124,40 @@ class WSGIAdapterCookieTest(unittest.TestCase):
         self.assertEqual(response.cookies['c1'], 'v1')
         self.assertEqual(self.session.cookies['c1'], 'v1')
 
+    def test_multiple_cookies(self):
+        app = WSGITestHandler(
+            extra_headers=[
+                ("Set-Cookie", "flimble=floop; Path=/"),
+                ("Set-Cookie", "flamble=flaap; Path=/")])
+        session = requests.session()
+        session.mount('http://localhost', WSGIAdapter(app=app))
 
-def test_multiple_cookies():
-    app = WSGITestHandler(
-        extra_headers=[
-            ("Set-Cookie", "flimble=floop; Path=/"),
-            ("Set-Cookie", "flamble=flaap; Path=/")])
-    session = requests.session()
-    session.mount('http://localhost', WSGIAdapter(app=app))
+        session.get(
+            "http://localhost/cookies/set?flimble=floop&flamble=flaap")
+        self.assertEqual(session.cookies['flimble'], "floop")
+        self.assertEqual(session.cookies['flamble'], "flaap")
 
-    session.get(
-        "http://localhost/cookies/set?flimble=floop&flamble=flaap")
-    assert session.cookies['flimble'] == "floop"
-    assert session.cookies['flamble'] == "flaap"
+    def test_delete_cookies(self):
+        session = requests.session()
+        set_app = WSGITestHandler(
+            extra_headers=[
+                ("Set-Cookie", "flimble=floop; Path=/"),
+                ("Set-Cookie", "flamble=flaap; Path=/")])
+        delete_app = WSGITestHandler(
+            extra_headers=[(
+                "Set-Cookie",
+                "flimble=; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Max-Age=0; Path=/")])
+        session.mount(
+            'http://localhost/cookies/set', WSGIAdapter(app=set_app))
+        session.mount(
+            'http://localhost/cookies/delete', WSGIAdapter(app=delete_app))
 
+        session.get(
+            "http://localhost/cookies/set?flimble=floop&flamble=flaap")
+        self.assertEqual(session.cookies['flimble'], "floop")
+        self.assertEqual(session.cookies['flamble'], "flaap")
 
-def test_delete_cookies():
-    session = requests.session()
-    set_app = WSGITestHandler(
-        extra_headers=[
-            ("Set-Cookie", "flimble=floop; Path=/"),
-            ("Set-Cookie", "flamble=flaap; Path=/")])
-    delete_app = WSGITestHandler(
-        extra_headers=[(
-            "Set-Cookie",
-            "flimble=; Expires=Thu, 01-Jan-1970 00:00:00 GMT; Max-Age=0; Path=/")])
-    session.mount(
-        'http://localhost/cookies/set', WSGIAdapter(app=set_app))
-    session.mount(
-        'http://localhost/cookies/delete', WSGIAdapter(app=delete_app))
-
-    session.get(
-        "http://localhost/cookies/set?flimble=floop&flamble=flaap")
-    assert session.cookies['flimble'] == "floop"
-    assert session.cookies['flamble'] == "flaap"
-
-    session.get(
-        "http://localhost/cookies/delete?flimble")
-    assert 'flimble' not in session.cookies
-    assert session.cookies['flamble'] == "flaap"
+        session.get(
+            "http://localhost/cookies/delete?flimble")
+        self.assertNotIn('flimble', session.cookies)
+        self.assertEqual(session.cookies['flamble'], "flaap")
