@@ -1,6 +1,7 @@
 import datetime
 import io
 import logging
+import re
 
 from urllib3._collections import HTTPHeaderDict
 
