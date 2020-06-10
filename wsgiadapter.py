@@ -1,6 +1,7 @@
 import datetime
 import io
 import logging
+import re
 
 from urllib3._collections import HTTPHeaderDict
 
@@ -95,6 +96,7 @@ def make_headers(headers):
 class WSGIAdapter(BaseAdapter):
     server_protocol = "HTTP/1.1"
     wsgi_version = (1, 0)
+    status_reply_pattern = re.compile(r'(\d{3})\s(.*)')
 
     def __init__(
         self,
@@ -161,8 +163,9 @@ class WSGIAdapter(BaseAdapter):
 
         def start_response(status, headers, exc_info=None):
             headers = make_headers(headers)
-            response.status_code = int(status.split(" ")[0])
-            response.reason = responses.get(response.status_code, "Unknown Status Code")
+            match = self.status_reply_pattern.match(status)
+            response.status_code = int(match.group(1))
+            response.reason = match.group(2)
             response.headers = headers
             resp._original_response.msg = headers
             extract_cookies_to_jar(response.cookies, request, resp)
