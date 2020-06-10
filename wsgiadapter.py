@@ -163,6 +163,7 @@ class WSGIAdapter(BaseAdapter):
 
         def start_response(status, headers, exc_info=None):
             headers = make_headers(headers)
+            match = self.status_reply_pattern.match(status)
             response.status_code = int(match.group(1))
             response.reason = match.group(2)
             response.headers = headers
