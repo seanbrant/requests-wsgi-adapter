@@ -171,6 +171,7 @@ class WSGIAdapter(BaseAdapter):
             self._log(response)
 
         response.request = request
+        response.connection = self
         response.url = request.url
 
         response.raw = Content(b"".join(self.app(environ, start_response)))

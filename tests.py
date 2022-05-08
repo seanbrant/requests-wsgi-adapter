@@ -47,12 +47,14 @@ class WSGIAdapterTest(unittest.TestCase):
         self.session.mount("http://localhost:5000", adapter)
         self.session.mount("https://localhost", adapter)
         self.session.mount("https://localhost:5443", adapter)
+        self.adapter = adapter
 
     def test_basic_response(self):
         response = self.session.get(
             "http://localhost/index", headers={"Content-Type": "application/json"}
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.connection, self.adapter)
         self.assertEqual(response.headers["Content-Type"], "application/json")
         self.assertEqual(response.json()["result"], "__works__")
         self.assertEqual(response.json()["content_type"], "application/json")
