@@ -1,6 +1,7 @@
 import datetime
 import io
 import logging
+import time
 
 from urllib3._collections import HTTPHeaderDict
 
@@ -112,7 +113,7 @@ class WSGIAdapter(BaseAdapter):
         self.errors = io.BytesIO()
 
     def send(self, request, *args, **kwargs):
-        start = datetime.datetime.utcnow()
+        start = time.time()
 
         urlinfo = urlparse(request.url)
 
@@ -167,7 +168,7 @@ class WSGIAdapter(BaseAdapter):
             resp._original_response.msg = headers
             extract_cookies_to_jar(response.cookies, request, resp)
             response.encoding = get_encoding_from_headers(response.headers)
-            response.elapsed = datetime.datetime.utcnow() - start
+            response.elapsed = datetime.timedelta(seconds=time.time() - start)
             self._log(response)
 
         response.request = request
