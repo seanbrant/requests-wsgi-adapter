@@ -1,0 +1,3 @@
+include LICENSE
+include runtests.py
+include tests.py
