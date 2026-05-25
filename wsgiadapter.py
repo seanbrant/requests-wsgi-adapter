@@ -130,7 +130,7 @@ class WSGIAdapter(BaseAdapter):
 
         environ = {
             "CONTENT_TYPE": request.headers.get("Content-Type", ""),
-            "CONTENT_LENGTH": length,
+            "CONTENT_LENGTH": str(length),
             "PATH_INFO": unquote(urlinfo.path, encoding="latin-1"),
             "SCRIPT_NAME": "",
             "REQUEST_METHOD": request.method,

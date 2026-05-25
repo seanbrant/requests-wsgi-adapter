@@ -64,7 +64,7 @@ class WSGIAdapterTest(unittest.TestCase):
     def test_request_with_body(self):
         response = self.session.post("http://localhost/index", data="__test__")
         self.assertEqual(response.json()["body"], "__test__")
-        self.assertEqual(response.json()["content_length"], len("__test__"))
+        self.assertEqual(response.json()["content_length"], str(len("__test__")))
 
     def test_request_with_https(self):
         response = self.session.get("https://localhost/index")
@@ -73,7 +73,7 @@ class WSGIAdapterTest(unittest.TestCase):
     def test_request_with_json(self):
         response = self.session.post("http://localhost/index", json={})
         self.assertEqual(response.json()["body"], "{}")
-        self.assertEqual(response.json()["content_length"], len("{}"))
+        self.assertEqual(response.json()["content_length"], str(len("{}")))
 
     def test_request_i18n_path(self):
         response = self.session.get("http://localhost/привет", json={})
@@ -117,7 +117,7 @@ class WSGIAdapterTest(unittest.TestCase):
             response = self.session.post("http://localhost/index", data=f)
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["body"], "hugeblob")
-            self.assertEqual(response.json()["content_length"], len(b"hugeblob"))
+            self.assertEqual(response.json()["content_length"], str(len(b"hugeblob")))
 
 
 class WSGIAdapterCookieTest(unittest.TestCase):
