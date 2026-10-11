@@ -177,3 +177,45 @@ class WSGIAdapterCookieTest(unittest.TestCase):
         session.get("http://localhost/cookies/delete?flimble")
         self.assertNotIn("flimble", session.cookies)
         self.assertEqual(session.cookies["flamble"], "flaap")
+
+
+class ClosableResponse(object):
+    def __init__(self, fail=False):
+        self.fail = fail
+        self.close_calls = 0
+
+    def __iter__(self):
+        yield b"first"
+        if self.fail:
+            raise ValueError("response iteration failed")
+        yield b"second"
+
+    def close(self):
+        self.close_calls += 1
+
+
+class ResponseCloseTest(unittest.TestCase):
+    def send_response(self, result):
+        def app(environ, start_response):
+            start_response("200 OK", [("Content-Type", "text/plain")])
+            return result
+
+        request = requests.Request("GET", "http://localhost/").prepare()
+        return WSGIAdapter(app).send(request)
+
+    def test_response_iterable_is_closed_after_consumption(self):
+        result = ClosableResponse()
+        response = self.send_response(result)
+        self.assertEqual(response.content, b"firstsecond")
+        self.assertEqual(result.close_calls, 1)
+
+    def test_response_iterable_is_closed_after_iteration_error(self):
+        result = ClosableResponse(fail=True)
+        with self.assertRaises(ValueError) as raised:
+            self.send_response(result)
+        self.assertEqual(str(raised.exception), "response iteration failed")
+        self.assertEqual(result.close_calls, 1)
+
+    def test_iterable_without_close_is_supported(self):
+        response = self.send_response([b"first", b"second"])
+        self.assertEqual(response.content, b"firstsecond")

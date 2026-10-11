@@ -173,7 +173,12 @@ class WSGIAdapter(BaseAdapter):
         response.request = request
         response.url = request.url
 
-        response.raw = Content(b"".join(self.app(environ, start_response)))
+        result = self.app(environ, start_response)
+        try:
+            response.raw = Content(b"".join(result))
+        finally:
+            if hasattr(result, "close"):
+                result.close()
         response.raw._original_response = resp._original_response
 
         return response
